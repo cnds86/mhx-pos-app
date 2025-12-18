@@ -1,0 +1,7 @@
+{
+  "name": "MAHAXAY POS",
+  "description": "ລະບົບ POS ສຳລັບຮ້ານຂາຍວັດສະດຸກໍ່ສ້າງ ມະຫາໄຊ (Construction Material POS System in Lao)",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

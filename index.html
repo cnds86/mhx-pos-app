@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="lo">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MAHAXAY POS</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Noto Sans Lao & Libre Barcode -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Lao:wght@100..900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Libre+Barcode+39+Text&display=swap" rel="stylesheet">
+    
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Noto Sans Lao"', 'sans-serif'],
+              barcode: ['"Libre Barcode 39 Text"', 'cursive'],
+            },
+            colors: {
+              primary: '#0F4C81', // Classic construction blue
+              secondary: '#F57C00', // Safety orange
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      body {
+        font-family: 'Noto Sans Lao', sans-serif;
+      }
+
+      /* Utility to hide scrollbar for clean horizontal scrolling */
+      .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+      }
+      .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+      }
+      
+      /* Print Styles Configuration */
+      @media print {
+        @page {
+          margin: 0;
+          size: auto;
+        }
+        
+        body * {
+          visibility: hidden;
+        }
+        
+        body {
+          margin: 0;
+          padding: 0;
+          background-color: white;
+        }
+
+        /* --- Print Containers --- */
+        #receipt-modal, #quotation-modal, #barcode-modal {
+          position: fixed;
+          left: 0;
+          top: 0;
+          width: 100%;
+          height: auto;
+          min-height: 100%;
+          z-index: 9999;
+          background: white;
+          display: block;
+          padding: 0;
+          margin: 0;
+          visibility: visible;
+        }
+
+        #receipt-modal *, #quotation-modal *, #barcode-modal * {
+          visibility: visible;
+        }
+
+        /* --- Thermal Receipt (80mm) --- */
+        #receipt-content {
+          width: 80mm;
+          max-width: 80mm;
+          box-shadow: none;
+          border: none;
+          border-radius: 0;
+          padding: 5px;
+          margin: 0;
+          font-size: 12px;
+        }
+
+        /* --- A4 Document (Quotation) --- */
+        #quotation-content {
+          width: 210mm; /* A4 Width */
+          max-width: 100%;
+          box-shadow: none;
+          border: none;
+          border-radius: 0;
+          padding: 20px;
+          margin: 0 auto;
+          font-size: 12pt;
+        }
+
+        /* --- Barcode Label Sheet --- */
+        #barcode-content {
+          width: 100%;
+          padding: 10px;
+        }
+
+        /* Utilities */
+        ::-webkit-scrollbar {
+          display: none;
+        }
+        
+        .no-print {
+          display: none !important;
+        }
+        
+        .mb-6 { margin-bottom: 10px !important; }
+      }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.1/",
+    "react": "https://esm.sh/react@^19.2.1",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.1/",
+    "recharts": "https://esm.sh/recharts@^2.12.0",
+    "lucide-react": "https://esm.sh/lucide-react@^0.560.0",
+    "html5-qrcode": "https://esm.sh/html5-qrcode@2.3.8"
+  }
+}
+</script>
+</head>
+  <body class="bg-gray-50 text-slate-800">
+    <div id="root"></div>
+  </body>
+</html>
