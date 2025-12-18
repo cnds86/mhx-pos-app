@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { SaleRecord, Product, ShopSettings, SystemData, User, PaymentTransaction, CategoryItem } from '../types';
-import { Download, Trash2, Database, FileSpreadsheet, Store, Save, Percent, Upload, Image as ImageIcon, Package, RotateCcw, AlertTriangle, Lock } from 'lucide-react';
+import { Download, Trash2, Database, FileSpreadsheet, Store, Save, Percent, Upload, Image as ImageIcon, Package, RotateCcw, AlertTriangle, List, Plus, X, Lock, Unlock, DollarSign } from 'lucide-react';
 
 interface SettingsProps {
   sales: SaleRecord[];
@@ -21,11 +21,14 @@ interface SettingsProps {
 export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSettings, users = [], transactions = [], categories = [], onUpdateSettings, onUpdateUsers, onResetData, onRestoreData, onImportProducts, onUpdateCategories }) => {
   const [formData, setFormData] = useState<ShopSettings>(shopSettings);
   const [isSaved, setIsSaved] = useState(false);
-  const [activeTab, setActiveTab] = useState<'GENERAL' | 'DATA'>('GENERAL');
+  const [activeTab, setActiveTab] = useState<'GENERAL' | 'DATA' | 'CATEGORIES'>('GENERAL');
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const restoreInputRef = useRef<HTMLInputElement>(null);
   const importCsvRef = useRef<HTMLInputElement>(null);
+
+  // Category State
+  const [newCategoryName, setNewCategoryName] = useState('');
 
   useEffect(() => {
     setFormData(shopSettings);
@@ -141,10 +144,11 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
         const newProducts: Product[] = [];
 
         dataRows.forEach(row => {
-           // Basic CSV parsing
+           // Basic CSV parsing (not robust for commas inside quotes)
            const cols = row.split(',').map(c => c.trim().replace(/^"|"$/g, ''));
            
-           if (cols.length >= 4 && cols[2]) {
+           if (cols.length >= 4 && cols[2]) { // Ensure Name exists
+              // Format: ID, Barcode, Name, Category, Unit, Cost, Retail, Wholesale, Stock
               const newProduct: Product = {
                  id: cols[0] || Date.now().toString() + Math.random(),
                  barcode: cols[1] || '',
@@ -155,7 +159,7 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                  price: parseFloat(cols[6]) || 0,
                  wholesalePrice: parseFloat(cols[7]) || 0,
                  stock: parseFloat(cols[8]) || 0,
-                 image: 'https://picsum.photos/200/200?random=' + Math.random()
+                 image: 'https://picsum.photos/200/200?random=' + Math.random() // Default image
               };
               newProducts.push(newProduct);
            }
@@ -179,22 +183,46 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
     e.target.value = '';
   };
 
+  const handleAddCategory = (e: React.FormEvent) => {
+      e.preventDefault();
+      if(!newCategoryName.trim()) return;
+      
+      onUpdateCategories([
+          ...categories, 
+          { id: Date.now().toString(), name: newCategoryName.trim() }
+      ]);
+      setNewCategoryName('');
+  };
+
+  const handleDeleteCategory = (id: string) => {
+      if(confirm('ຕ້ອງການລຶບໝວດໝູ່ນີ້ແທ້ບໍ່?')) {
+          onUpdateCategories(categories.filter(c => c.id !== id));
+      }
+  };
+
   return (
     <div className="p-4 md:p-6 animate-fade-in max-w-4xl mx-auto pb-20">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">ຕັ້ງຄ່າລະບົບ (Settings)</h2>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto text-nowrap">
+      <div className="flex gap-2 mb-6 border-b border-gray-200 overflow-x-auto">
          <button 
             onClick={() => setActiveTab('GENERAL')}
-            className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === 'GENERAL' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 font-medium text-sm transition-colors relative whitespace-nowrap ${activeTab === 'GENERAL' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
          >
             ຂໍ້ມູນທົ່ວໄປ (General)
             {activeTab === 'GENERAL' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>}
          </button>
          <button 
+            onClick={() => setActiveTab('CATEGORIES')}
+            className={`px-4 py-2 font-medium text-sm transition-colors relative whitespace-nowrap ${activeTab === 'CATEGORIES' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+         >
+            ໝວດໝູ່ສິນຄ້າ (Categories)
+            {activeTab === 'CATEGORIES' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>}
+         </button>
+         <button 
             onClick={() => setActiveTab('DATA')}
-            className={`px-4 py-2 font-medium text-sm transition-colors relative ${activeTab === 'DATA' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+            className={`px-4 py-2 font-medium text-sm transition-colors relative whitespace-nowrap ${activeTab === 'DATA' ? 'text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
          >
             ຈັດການຂໍ້ມູນ (Data)
             {activeTab === 'DATA' && <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-blue-600"></div>}
@@ -202,6 +230,7 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
       </div>
 
       <div className="grid gap-6">
+        
         {/* Shop Settings */}
         {activeTab === 'GENERAL' && (
            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in">
@@ -211,6 +240,8 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
              </div>
              <div className="p-6">
                 <form onSubmit={handleSaveSettings} className="space-y-4">
+                   
+                   {/* Logo Upload */}
                    <div className="flex justify-center mb-6">
                      <div 
                        className="relative group cursor-pointer w-32 h-32"
@@ -231,7 +262,13 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                          <Upload size={20} className="mb-1" />
                          <span className="text-[10px] font-medium">ອັບໂຫຼດໂລໂກ້</span>
                        </div>
-                       <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleLogoUpload} />
+                       <input 
+                         type="file" 
+                         ref={fileInputRef}
+                         className="hidden"
+                         accept="image/*"
+                         onChange={handleLogoUpload}
+                       />
                      </div>
                    </div>
 
@@ -276,48 +313,124 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                      />
                    </div>
 
-                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200 space-y-4">
+                   {/* Pricing Settings */}
+                   <div className="p-4 bg-blue-50/50 rounded-xl border border-blue-100">
                        <div className="flex items-center justify-between">
-                           <label className="flex items-center gap-2 font-medium text-gray-800">
-                               <Lock size={18} className="text-gray-600" />
-                               ອະນຸຍາດໃຫ້ປ່ຽນລາຄາໃນກະຕ່າ
-                           </label>
+                           <div className="flex items-center gap-3">
+                               <div className={`p-2 rounded-lg ${formData.allowPriceOverride ? 'bg-blue-100 text-blue-600' : 'bg-gray-100 text-gray-500'}`}>
+                                  {formData.allowPriceOverride ? <Unlock size={18} /> : <Lock size={18} />}
+                               </div>
+                               <div>
+                                  <label className="font-bold text-gray-800 text-sm block">ອະນຸຍາດໃຫ້ແກ້ໄຂລາຄາໃນກະຕ່າ (Allow Price Edit)</label>
+                                  <p className="text-[10px] text-gray-500">ຖ້າປິດ, ພະນັກງານຈະບໍ່ສາມາດປ່ຽນລາຄາສິນຄ້າເອງໄດ້ໃນໜ້າຂາຍ</p>
+                               </div>
+                           </div>
                            <label className="relative inline-flex items-center cursor-pointer">
-                             <input type="checkbox" className="sr-only peer" checked={formData.allowPriceChange} onChange={e => setFormData({...formData, allowPriceChange: e.target.checked})} />
+                             <input 
+                               type="checkbox" 
+                               className="sr-only peer" 
+                               checked={formData.allowPriceOverride} 
+                               onChange={e => setFormData({...formData, allowPriceOverride: e.target.checked})} 
+                             />
                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                            </label>
                        </div>
-                       <hr className="border-gray-200" />
-                       <div className="flex items-center justify-between">
+                   </div>
+
+                   {/* Tax Settings */}
+                   <div className="p-4 bg-gray-50 rounded-xl border border-gray-200">
+                       <div className="flex items-center justify-between mb-2">
                            <label className="flex items-center gap-2 font-medium text-gray-800">
                                <Percent size={18} />
                                ການຄິດໄລ່ອາກອນ (VAT/Tax)
                            </label>
                            <label className="relative inline-flex items-center cursor-pointer">
-                             <input type="checkbox" className="sr-only peer" checked={formData.vatEnabled} onChange={e => setFormData({...formData, vatEnabled: e.target.checked})} />
+                             <input 
+                               type="checkbox" 
+                               className="sr-only peer" 
+                               checked={formData.vatEnabled} 
+                               onChange={e => setFormData({...formData, vatEnabled: e.target.checked})} 
+                             />
                              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                            </label>
                        </div>
                        {formData.vatEnabled && (
-                           <div className="animate-fade-in pl-7">
+                           <div className="animate-fade-in">
                                <label className="block text-xs font-medium text-gray-600 mb-1">ອັດຕາອາກອນ (%)</label>
-                               <input type="number" min="0" max="100" className="w-full p-2 border border-gray-300 rounded-lg outline-none" value={formData.taxRate} onChange={e => setFormData({...formData, taxRate: parseFloat(e.target.value)})} />
+                               <input 
+                                   type="number" 
+                                   min="0"
+                                   max="100"
+                                   className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                                   value={formData.taxRate}
+                                   onChange={e => setFormData({...formData, taxRate: parseFloat(e.target.value)})}
+                               />
+                               <p className="text-[10px] text-gray-500 mt-1">ອາກອນຈະຖືກຄິດໄລ່ເພີ່ມຈາກຍອດລວມ (Exclusive Tax)</p>
                            </div>
                        )}
                    </div>
 
                     <div>
                      <label className="block text-sm font-medium text-gray-700 mb-1">ຂໍ້ຄວາມທ້າຍບິນ (Receipt Footer)</label>
-                     <input type="text" className="w-full p-2 border border-gray-300 rounded-lg outline-none" value={formData.receiptFooter} onChange={e => setFormData({...formData, receiptFooter: e.target.value})} />
+                     <input 
+                       type="text" 
+                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                       value={formData.receiptFooter}
+                       onChange={e => setFormData({...formData, receiptFooter: e.target.value})}
+                     />
                    </div>
 
-                   <button type="submit" className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-white font-medium transition-all ${isSaved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'}`}>
+                   <div className="pt-2">
+                     <button 
+                       type="submit"
+                       className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-white font-medium transition-all ${isSaved ? 'bg-green-600' : 'bg-blue-600 hover:bg-blue-700'}`}
+                     >
                        <Save size={18} />
                        {isSaved ? 'ບັນທຶກແລ້ວ!' : 'ບັນທຶກຂໍ້ມູນ'}
-                   </button>
+                     </button>
+                   </div>
                 </form>
              </div>
            </div>
+        )}
+
+        {/* Category Settings */}
+        {activeTab === 'CATEGORIES' && (
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden animate-fade-in">
+               <div className="p-4 border-b border-gray-100 bg-orange-50 flex items-center gap-2">
+                  <List className="text-orange-600" size={20} />
+                  <h3 className="font-semibold text-gray-800">ຈັດການໝວດໝູ່ສິນຄ້າ (Product Categories)</h3>
+               </div>
+               <div className="p-6">
+                  <form onSubmit={handleAddCategory} className="flex gap-2 mb-6">
+                     <input 
+                        type="text" 
+                        className="flex-1 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 outline-none"
+                        placeholder="ຊື່ໝວດໝູ່ໃໝ່ (New Category Name)"
+                        value={newCategoryName}
+                        onChange={e => setNewCategoryName(e.target.value)}
+                        required
+                     />
+                     <button type="submit" className="bg-orange-600 text-white px-4 py-2 rounded-lg hover:bg-orange-700 font-medium flex items-center gap-2">
+                        <Plus size={18} /> ເພີ່ມ
+                     </button>
+                  </form>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                     {categories.map(cat => (
+                        <div key={cat.id} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg bg-gray-50 hover:bg-white hover:shadow-sm transition-all">
+                           <span className="font-medium text-gray-700">{cat.name}</span>
+                           <button 
+                              onClick={() => handleDeleteCategory(cat.id)}
+                              className="text-gray-400 hover:text-red-500 p-1 rounded-md hover:bg-red-50 transition-colors"
+                           >
+                              <Trash2 size={16} />
+                           </button>
+                        </div>
+                     ))}
+                  </div>
+               </div>
+            </div>
         )}
 
         {/* Data Management */}
@@ -329,6 +442,8 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
              </div>
              
              <div className="p-6 space-y-4">
+               
+               {/* Backup & Restore Section */}
                <div className="flex flex-col md:flex-row gap-4 p-4 bg-purple-50 rounded-xl border border-purple-100 items-center">
                   <div className="flex-1 w-full">
                      <h4 className="font-bold text-purple-900 mb-1 flex items-center gap-2">
@@ -338,25 +453,50 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                      <p className="text-xs text-purple-700">ບັນທຶກຂໍ້ມູນທັງໝົດເປັນໄຟລ໌ ຫຼື ນຳຂໍ້ມູນເກົ່າກັບມາໃຊ້</p>
                   </div>
                   <div className="flex gap-2 w-full md:w-auto">
-                     <button onClick={handleDownloadBackup} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm text-sm font-medium">
-                       <Download size={16} /> <span>Backup</span>
+                     <button 
+                       onClick={handleDownloadBackup}
+                       className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm text-sm font-medium"
+                     >
+                       <Download size={16} />
+                       <span>Backup</span>
                      </button>
-                     <button onClick={() => restoreInputRef.current?.click()} className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors shadow-sm text-sm font-medium">
-                       <RotateCcw size={16} /> <span>Restore</span>
+                     <button 
+                       onClick={() => restoreInputRef.current?.click()}
+                       className="flex-1 md:flex-none flex items-center justify-center gap-2 px-4 py-2 bg-white text-purple-700 border border-purple-200 rounded-lg hover:bg-purple-100 transition-colors shadow-sm text-sm font-medium"
+                     >
+                       <RotateCcw size={16} />
+                       <span>Restore</span>
                      </button>
-                     <input type="file" ref={restoreInputRef} className="hidden" accept=".json" onChange={handleRestoreUpload} />
+                     <input 
+                       type="file" 
+                       ref={restoreInputRef} 
+                       className="hidden" 
+                       accept=".json" 
+                       onChange={handleRestoreUpload}
+                     />
                   </div>
                </div>
 
+               {/* Import CSV Section */}
                <div className="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-100">
                   <div>
                      <h4 className="font-medium text-blue-900">ນຳເຂົ້າສິນຄ້າຈາກ CSV (Import Inventory)</h4>
                      <p className="text-xs text-blue-700">Format: Barcode, Name, Category, Unit, Cost, Retail, Wholesale, Stock</p>
                   </div>
-                  <button onClick={() => importCsvRef.current?.click()} className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium">
-                     <Upload size={16} /> <span>Import .CSV</span>
+                  <button 
+                     onClick={() => importCsvRef.current?.click()}
+                     className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium"
+                  >
+                     <Upload size={16} />
+                     <span>Import .CSV</span>
                   </button>
-                  <input type="file" ref={importCsvRef} className="hidden" accept=".csv" onChange={handleImportCsv} />
+                  <input 
+                     type="file" 
+                     ref={importCsvRef}
+                     className="hidden"
+                     accept=".csv"
+                     onChange={handleImportCsv}
+                  />
                </div>
 
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -365,8 +505,12 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                      <h4 className="font-medium text-gray-900">ສົ່ງອອກຂໍ້ມູນການຂາຍ</h4>
                      <p className="text-xs text-gray-500">Sales Report (.CSV)</p>
                    </div>
-                   <button onClick={handleExportSalesCSV} className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 shadow-sm text-sm font-medium">
-                     <FileSpreadsheet size={16} /> <span>Sales</span>
+                   <button 
+                     onClick={handleExportSalesCSV}
+                     className="flex items-center gap-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm text-sm font-medium"
+                   >
+                     <FileSpreadsheet size={16} />
+                     <span>Sales</span>
                    </button>
                  </div>
 
@@ -375,8 +519,12 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                      <h4 className="font-medium text-gray-900">ສົ່ງອອກຂໍ້ມູນສິນຄ້າ</h4>
                      <p className="text-xs text-gray-500">Inventory Stock (.CSV)</p>
                    </div>
-                   <button onClick={handleExportInventoryCSV} className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-sm text-sm font-medium">
-                     <Package size={16} /> <span>Stock</span>
+                   <button 
+                     onClick={handleExportInventoryCSV}
+                     className="flex items-center gap-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm text-sm font-medium"
+                   >
+                     <Package size={16} />
+                     <span>Stock</span>
                    </button>
                  </div>
                </div>
@@ -388,16 +536,30 @@ export const Settings: React.FC<SettingsProps> = ({ sales, products, shopSetting
                    <AlertTriangle size={20} className="text-red-500" />
                    <div>
                      <h4 className="font-bold text-red-700">ລ້າງຂໍ້ມູນທັງໝົດ (Factory Reset)</h4>
-                     <p className="text-xs text-red-500">ລົບປະຫວັດການຂາຍ ແລະ ສິນຄ້າທັງໝົດ</p>
+                     <p className="text-xs text-red-500">ລົບປະຫວັດການຂາຍ ແລະ ສິນຄ້າທັງໝົດ (ບໍ່ສາມາດກູ້ຄືນໄດ້)</p>
                    </div>
                  </div>
-                 <button onClick={() => confirm('Are you sure?') && onResetData()} className="flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-bold shadow-sm">
-                   <Trash2 size={16} /> <span>Reset</span>
+                 <button 
+                   onClick={() => {
+                      if(confirm('ຄຳເຕືອນ: ຂໍ້ມູນທັງໝົດຈະຖືກລົບ! ທ່ານແນ່ໃຈບໍ່?')) {
+                        onResetData();
+                      }
+                   }}
+                   className="flex items-center gap-2 px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-100 transition-colors text-sm font-bold shadow-sm"
+                 >
+                   <Trash2 size={16} />
+                   <span>Reset</span>
                  </button>
                </div>
              </div>
            </div>
         )}
+
+        {/* System Info */}
+        <div className="text-center text-xs text-gray-400 mt-4">
+           Version 2.8.0
+        </div>
+
       </div>
     </div>
   );

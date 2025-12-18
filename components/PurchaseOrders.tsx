@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Supplier, Product, PurchaseOrder, POStatus, PurchaseOrderItem, ShopSettings } from '../types';
 import { FORMAT_CURRENCY } from '../constants';
-import { Plus, Search, Trash2, Save, X, Printer, ShoppingCart, Calendar, CheckCircle2, AlertCircle, FileText, Package, Briefcase, PlusCircle, MinusCircle, Clock } from 'lucide-react';
+import { Plus, Search, Trash2, Save, X, Printer, ShoppingCart, Calendar, CheckCircle2, AlertCircle, FileText, Package, Briefcase, PlusCircle, MinusCircle } from 'lucide-react';
 
 interface PurchaseOrdersProps {
   purchaseOrders: PurchaseOrder[];
@@ -22,7 +22,6 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
   const [selectedSupplierId, setSelectedSupplierId] = useState('');
   const [poItems, setPoItems] = useState<PurchaseOrderItem[]>([]);
   const [poNote, setPoNote] = useState('');
-  const [poDueDate, setPoDueDate] = useState('');
   const [paidAmount, setPaidAmount] = useState<string>('0');
 
   const filteredPOs = purchaseOrders.filter(po => 
@@ -71,7 +70,6 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
      const newPO: PurchaseOrder = {
         id: Date.now().toString(),
         date: new Date().toISOString(),
-        dueDate: poDueDate || undefined,
         supplierId: supplier.id,
         supplierName: supplier.name,
         items: poItems,
@@ -91,7 +89,6 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
      setSelectedSupplierId('');
      setPoItems([]);
      setPoNote('');
-     setPoDueDate('');
      setPaidAmount('0');
   };
 
@@ -134,10 +131,9 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
           <table className="w-full text-left">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ວັນທີສັ່ງ</th>
+                <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ວັນທີ</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ເລກທີ PO</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ຜູ້ສະໜອງ</th>
-                <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ກຳນົດສົ່ງ (Due Date)</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-right">ຍອດລວມ</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-center">ສະຖານະ</th>
                 <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-center">Actions</th>
@@ -154,14 +150,6 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
                   </td>
                   <td className="p-4 text-sm font-bold text-gray-800">
                     {po.supplierName}
-                  </td>
-                  <td className="p-4 text-sm text-gray-600">
-                    {po.dueDate ? (
-                        <div className="flex items-center gap-1">
-                            <Clock size={14} className="text-orange-500" />
-                            {new Date(po.dueDate).toLocaleDateString('lo-LA')}
-                        </div>
-                    ) : '-'}
                   </td>
                   <td className="p-4 text-sm font-bold text-right text-gray-800">
                     {FORMAT_CURRENCY(po.total)}
@@ -202,7 +190,7 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
               ))}
               {filteredPOs.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="text-center py-20 text-gray-400">ບໍ່ພົບລາຍການສັ່ງຊື້</td>
+                  <td colSpan={6} className="text-center py-20 text-gray-400">ບໍ່ພົບລາຍການສັ່ງຊື້</td>
                 </tr>
               )}
             </tbody>
@@ -247,30 +235,17 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
 
                  {/* Right: PO Form */}
                  <form onSubmit={handleSubmitPO} className="flex-1 p-6 flex flex-col">
-                    <div className="grid grid-cols-2 gap-4 mb-4">
-                        <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1">ເລືອກຜູ້ສະໜອງ (Supplier)</label>
-                           <select 
-                              required
-                              className="w-full p-2.5 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
-                              value={selectedSupplierId}
-                              onChange={e => setSelectedSupplierId(e.target.value)}
-                           >
-                              <option value="">-- ເລືອກຜູ້ສະໜອງ --</option>
-                              {suppliers.map(s => <option key={s.id} value={s.id}>{s.name} ({s.category})</option>)}
-                           </select>
-                        </div>
-                        <div>
-                           <label className="block text-xs font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">
-                               <Calendar size={12} /> ກຳນົດມື້ສົ່ງ (Due Date)
-                           </label>
-                           <input 
-                              type="date"
-                              className="w-full p-2 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
-                              value={poDueDate}
-                              onChange={e => setPoDueDate(e.target.value)}
-                           />
-                        </div>
+                    <div className="mb-4">
+                       <label className="block text-xs font-bold text-gray-500 uppercase mb-1">ເລືອກຜູ້ສະໜອງ (Supplier)</label>
+                       <select 
+                          required
+                          className="w-full p-2.5 border border-gray-300 rounded-lg bg-white outline-none focus:ring-2 focus:ring-blue-500"
+                          value={selectedSupplierId}
+                          onChange={e => setSelectedSupplierId(e.target.value)}
+                       >
+                          <option value="">-- ເລືອກຜູ້ສະໜອງ --</option>
+                          {suppliers.map(s => <option key={s.id} value={s.id}>{s.name} ({s.category})</option>)}
+                       </select>
                     </div>
 
                     <div className="flex-1 overflow-auto mb-4 border rounded-xl">
@@ -362,10 +337,7 @@ export const PurchaseOrders: React.FC<PurchaseOrdersProps> = ({ purchaseOrders, 
                         <h3 className="text-sm text-gray-500 uppercase tracking-wider">ໃບສັ່ງຊື້ສິນຄ້າ</h3>
                         <div className="mt-4 text-sm">
                            <p><span className="font-bold text-gray-600">PO No:</span> PO-{viewingPO.id.slice(-6)}</p>
-                           <p><span className="font-bold text-gray-600">Order Date:</span> {new Date(viewingPO.date).toLocaleDateString('lo-LA')}</p>
-                           {viewingPO.dueDate && (
-                               <p className="text-orange-600 font-bold"><span className="font-bold text-gray-600">Due Date:</span> {new Date(viewingPO.dueDate).toLocaleDateString('lo-LA')}</p>
-                           )}
+                           <p><span className="font-bold text-gray-600">Date:</span> {new Date(viewingPO.date).toLocaleDateString('lo-LA')}</p>
                         </div>
                      </div>
                   </div>

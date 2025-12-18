@@ -54,7 +54,6 @@ export interface PurchaseOrderItem {
 export interface PurchaseOrder {
   id: string;
   date: string;
-  dueDate?: string; // Track expected delivery date
   supplierId: string;
   supplierName: string;
   items: PurchaseOrderItem[];
@@ -90,7 +89,7 @@ export interface ShopSettings {
   receiptFooter: string;
   taxRate: number; // Percentage
   vatEnabled: boolean;
-  allowPriceChange: boolean; // New setting
+  allowPriceOverride: boolean; // New: Toggle price editing in cart
   logo?: string; // Base64 image
 }
 
@@ -240,4 +239,4 @@ export interface SystemData {
   purchaseOrders?: PurchaseOrder[];
 }
 
-export type ViewState = 'POS' | 'INVENTORY' | 'CUSTOMERS' | 'DASHBOARD' | 'SETTINGS' | 'QUOTATIONS' | 'EXPENSES' | 'DELIVERIES' | 'STAFF' | 'SUPPLIERS' | 'PURCHASE_ORDERS' | 'CATEGORIES';
+export type ViewState = 'POS' | 'INVENTORY' | 'CUSTOMERS' | 'DASHBOARD' | 'SETTINGS' | 'QUOTATIONS' | 'EXPENSES' | 'DELIVERIES' | 'STAFF' | 'SUPPLIERS' | 'PURCHASE_ORDERS';

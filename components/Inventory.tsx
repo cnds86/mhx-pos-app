@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Product, ShopSettings, StockLog, CategoryItem, Supplier, User as UserType } from '../types';
+import { Product, ShopSettings, StockLog, CategoryItem, Supplier } from '../types';
 import { FORMAT_CURRENCY } from '../constants';
-import { Plus, Search, Trash2, Edit2, Save, X, ScanBarcode, AlertCircle, Package, Upload, Image as ImageIcon, Printer, PackagePlus, History, ArrowRight, ArrowDown, ArrowUp, DollarSign, Coins, ClipboardList, Minus, Truck, User as UserIcon } from 'lucide-react';
+import { Plus, Search, Trash2, Edit2, Save, X, ScanBarcode, AlertCircle, Package, Upload, Image as ImageIcon, Printer, PackagePlus, History, ArrowRight, ArrowDown, ArrowUp, DollarSign, Coins, ClipboardList, Minus, Truck } from 'lucide-react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 
 interface InventoryProps {
@@ -10,14 +10,13 @@ interface InventoryProps {
   suppliers: Supplier[];
   shopSettings: ShopSettings;
   stockLogs?: StockLog[];
-  currentUser: UserType | null;
   onAddProduct: (product: Product) => void;
   onUpdateProduct: (product: Product) => void;
   onRestockProduct: (productId: string, quantity: number, note: string) => void;
   onDeleteProduct: (id: string) => void;
 }
 
-export const Inventory: React.FC<InventoryProps> = ({ products, categories = [], suppliers = [], shopSettings, stockLogs = [], currentUser, onAddProduct, onUpdateProduct, onRestockProduct, onDeleteProduct }) => {
+export const Inventory: React.FC<InventoryProps> = ({ products, categories = [], suppliers = [], shopSettings, stockLogs = [], onAddProduct, onUpdateProduct, onRestockProduct, onDeleteProduct }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterType, setFilterType] = useState<'ALL' | 'LOW_STOCK'>('ALL');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -312,7 +311,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
             <p className="text-xl font-bold text-gray-800">{FORMAT_CURRENCY(totalCostValue)}</p>
           </div>
         </div>
-        <div className="bg-white p-4 rounded-xl shadow-sm border border-orange-100 flex items-center gap-4">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-200 flex items-center gap-4">
           <div className="p-3 bg-orange-50 text-orange-600 rounded-full"><AlertCircle size={24} /></div>
           <div>
             <p className="text-sm text-gray-500">ສິນຄ້າໃກ້ໝົດ</p>
@@ -398,7 +397,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                   </td>
                   <td className="p-4">
                     <div className="flex justify-center gap-1">
-                      <button onClick={() => handleOpenRestockModal(product)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Adjust Stock">
+                      <button onClick={() => handleOpenRestockModal(product)} className="p-1.5 text-blue-600 hover:bg-blue-50 rounded" title="Restock">
                         <PackagePlus size={16} />
                       </button>
                       <button onClick={() => handleOpenHistoryModal(product)} className="p-1.5 text-gray-500 hover:bg-gray-100 rounded" title="History">
@@ -604,27 +603,21 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
         </div>
       )}
 
-      {/* Stock Adjustment Modal */}
+      {/* Restock Modal */}
       {isRestockModalOpen && restockProduct && (
          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60] p-4 animate-fade-in">
             <div className="bg-white rounded-2xl w-full max-w-sm shadow-xl overflow-hidden">
-               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-blue-50">
-                  <h3 className="text-lg font-bold text-blue-800">ປັບປຸງຈຳນວນສິນຄ້າ (Stock Adjustment)</h3>
+               <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                  <h3 className="text-lg font-bold text-gray-800">ປັບສະຕັອກ (Adjust Stock)</h3>
                   <button onClick={() => setIsRestockModalOpen(false)}><X className="text-gray-400" /></button>
                </div>
                <form onSubmit={handleRestockSubmit} className="p-6 space-y-4">
-                  <div className="flex items-center gap-3 mb-4 bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <div className="flex items-center gap-3 mb-4 bg-gray-50 p-3 rounded-lg">
                      <img src={restockProduct.image} className="w-12 h-12 rounded object-cover" alt="" />
-                     <div className="flex-1 min-w-0">
-                        <p className="font-bold text-gray-800 truncate">{restockProduct.name}</p>
+                     <div>
+                        <p className="font-bold text-gray-800">{restockProduct.name}</p>
                         <p className="text-xs text-gray-500">ປະຈຸບັນ: <span className="font-bold text-blue-600">{restockProduct.stock} {restockProduct.unit}</span></p>
                      </div>
-                  </div>
-
-                  {/* User Performing Action Display */}
-                  <div className="flex items-center gap-2 text-xs text-gray-500 bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
-                     <UserIcon size={14} className="text-blue-500" />
-                     <span className="font-medium">ຜູ້ເຮັດລາຍການ: <span className="text-gray-800 font-bold">{currentUser?.name || 'Unknown'}</span></span>
                   </div>
 
                   <div className="flex bg-gray-100 p-1 rounded-lg">
@@ -645,15 +638,13 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                   </div>
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">ຈຳນວນທີ່ປ່ຽນແປງ (Quantity)</label>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">ຈຳນວນ</label>
                      <input 
                        required
                        type="number"
                        min="1"
                        autoFocus
-                       className={`w-full p-3 border-2 rounded-lg focus:ring-4 outline-none text-center text-xl font-bold transition-all ${
-                         adjustType === 'ADD' ? 'border-green-100 focus:border-green-500 focus:ring-green-50' : 'border-red-100 focus:border-red-500 focus:ring-red-50'
-                       }`}
+                       className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-center text-xl font-bold"
                        value={restockAmount}
                        onChange={e => setRestockAmount(e.target.value)}
                        placeholder="0"
@@ -663,7 +654,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                   {adjustType === 'ADD' && (
                      <div>
                         <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1">
-                           <Truck size={14} /> ເລືອກຜູ້ສະໜອງ (Supplier) - Option
+                           <Truck size={14} /> ເລືອກຜູ້ສະໜອງ (Supplier)
                         </label>
                         <select 
                            className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none bg-white"
@@ -679,12 +670,11 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                   )}
 
                   <div>
-                     <label className="block text-sm font-medium text-gray-700 mb-1">ໝາຍເຫດ / ເຫດຜົນການປັບປຸງ (Reason)</label>
+                     <label className="block text-sm font-medium text-gray-700 mb-1">ໝາຍເຫດ</label>
                      <textarea 
-                       required
-                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none text-sm"
+                       className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
                        rows={2}
-                       placeholder="ກະລຸນາໃສ່ເຫດຜົນການປັບປຸງ..."
+                       placeholder="ເຫດຜົນການປັບ..."
                        value={restockNote}
                        onChange={e => setRestockNote(e.target.value)}
                      />
@@ -692,9 +682,9 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
 
                   <button 
                     type="submit"
-                    className={`w-full py-3 rounded-lg text-white font-bold flex items-center justify-center gap-2 transition-all shadow-md ${adjustType === 'ADD' ? 'bg-green-600 hover:bg-green-700 shadow-green-100' : 'bg-red-600 hover:bg-red-700 shadow-red-100'}`}
+                    className={`w-full py-3 rounded-lg text-white font-bold flex items-center justify-center gap-2 ${adjustType === 'ADD' ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'}`}
                   >
-                     <Save size={18} /> ຢືນຢັນການປັບປຸງ
+                     <Save size={18} /> ຢືນຢັນ
                   </button>
                </form>
             </div>
@@ -719,7 +709,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                            <th className="p-3 text-xs font-semibold text-gray-500">ລາຍການ</th>
                            <th className="p-3 text-xs font-semibold text-gray-500 text-center">ປ່ຽນແປງ</th>
                            <th className="p-3 text-xs font-semibold text-gray-500 text-center">ຄົງເຫຼືອ</th>
-                           <th className="p-3 text-xs font-semibold text-gray-500">ໝາຍເຫດ / ຜູ້ເຮັດລາຍການ</th>
+                           <th className="p-3 text-xs font-semibold text-gray-500">ໝາຍເຫດ</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-gray-100">
@@ -739,10 +729,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                                  {log.quantity > 0 ? '+' : ''}{log.quantity}
                               </td>
                               <td className="p-3 text-sm text-center text-gray-800">{log.newStock}</td>
-                              <td className="p-3 text-sm text-gray-500">
-                                 <div>{log.note || '-'}</div>
-                                 <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-1 mt-0.5"><UserIcon size={10} /> {log.performedBy || 'System'}</div>
-                              </td>
+                              <td className="p-3 text-sm text-gray-500">{log.note || '-'}</td>
                            </tr>
                         )) : (
                            <tr><td colSpan={5} className="text-center py-8 text-gray-400">ບໍ່ມີປະຫວັດ</td></tr>
@@ -777,7 +764,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-center">ຈຳນວນ</th>
                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-center">ກ່ອນໜ້າ</th>
                            <th className="p-4 text-xs font-semibold text-gray-500 uppercase text-center">ຄົງເຫຼືອ</th>
-                           <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ໝາຍເຫດ / ຜູ້ເຮັດລາຍການ</th>
+                           <th className="p-4 text-xs font-semibold text-gray-500 uppercase">ໝາຍເຫດ</th>
                         </tr>
                      </thead>
                      <tbody className="divide-y divide-gray-100">
@@ -799,10 +786,7 @@ export const Inventory: React.FC<InventoryProps> = ({ products, categories = [],
                               </td>
                               <td className="p-4 text-sm text-center text-gray-500">{log.previousStock}</td>
                               <td className="p-4 text-sm text-center font-bold text-gray-800">{log.newStock}</td>
-                              <td className="p-4 text-sm text-gray-500">
-                                 <div>{log.note || '-'}</div>
-                                 <div className="text-[10px] text-gray-400 font-bold uppercase flex items-center gap-1 mt-0.5"><UserIcon size={10} /> {log.performedBy || 'System'}</div>
-                              </td>
+                              <td className="p-4 text-sm text-gray-500">{log.note || '-'}</td>
                            </tr>
                         )) : (
                            <tr><td colSpan={7} className="text-center py-12 text-gray-400">ບໍ່ມີປະຫວັດ</td></tr>
