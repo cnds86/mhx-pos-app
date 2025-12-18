@@ -90,6 +90,7 @@ export interface ShopSettings {
   receiptFooter: string;
   taxRate: number; // Percentage
   vatEnabled: boolean;
+  allowPriceChange: boolean; // New setting
   logo?: string; // Base64 image
 }
 
@@ -239,4 +240,4 @@ export interface SystemData {
   purchaseOrders?: PurchaseOrder[];
 }
 
-export type ViewState = 'POS' | 'INVENTORY' | 'CUSTOMERS' | 'DASHBOARD' | 'SETTINGS' | 'QUOTATIONS' | 'EXPENSES' | 'DELIVERIES' | 'STAFF' | 'SUPPLIERS' | 'PURCHASE_ORDERS';
+export type ViewState = 'POS' | 'INVENTORY' | 'CUSTOMERS' | 'DASHBOARD' | 'SETTINGS' | 'QUOTATIONS' | 'EXPENSES' | 'DELIVERIES' | 'STAFF' | 'SUPPLIERS' | 'PURCHASE_ORDERS' | 'CATEGORIES';

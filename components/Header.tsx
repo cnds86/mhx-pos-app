@@ -24,6 +24,7 @@ export const Header: React.FC<HeaderProps> = ({ currentUser, currentView, produc
     switch (view) {
       case 'POS': return 'ຂາຍໜ້າຮ້ານ (Point of Sale)';
       case 'INVENTORY': return 'ສາງສິນຄ້າ (Inventory)';
+      case 'CATEGORIES': return 'ໝວດໝູ່ສິນຄ້າ (Product Categories)';
       case 'CUSTOMERS': return 'ຈັດການລູກຄ້າ (Customers)';
       case 'SUPPLIERS': return 'ຜູ້ສະໜອງ (Suppliers)';
       case 'PURCHASE_ORDERS': return 'ການສັ່ງຊື້ (Purchase Orders)';
